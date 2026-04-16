@@ -11,10 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { aplicacionService } from '@/services/aplicacion.service';
 import { tipoPermisoService } from '@/services/tipoPermiso.service';
 import { tipoUsuarioService } from '@/services/tipoUsuario.service';
-import { tipoUsuarioAplicacionService } from '@/services/tipoUsuarioAplicacion.service';
-import { menuService } from '@/services/menu.service';
+import { tipoUsuarioAplicacionService } from '@/services/seguridades/tipoUsuarioAplicacion.service';
+import { menuService } from '@/services/seguridades/menu.service';
 import { permisosService } from '@/services/permisos.service';
-import { menuTipoUsuarioService } from '@/services/menuTipoUsuario.service';
+import { menuTipoUsuarioService } from '@/services/seguridades/menuTipoUsuario.service';
 import * as LucideIcons from 'lucide-react';
 
 interface AppProfilesFormProps {

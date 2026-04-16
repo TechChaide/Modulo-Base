@@ -4,59 +4,140 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Menu } from 'lucide-react';
 
 
 const SidebarContext = React.createContext<{
     isCollapsed: boolean;
     toggleCollapse: () => void;
+    isMobile: boolean;
+    isOpen: boolean;
+    setIsOpen: (open: boolean) => void;
   } | null>(null);
   
-  export function useSidebar() {
+export function useSidebar() {
     const context = React.useContext(SidebarContext);
     if (!context) {
-      throw new Error('useSidebar must be used within a Sidebar');
+        // Retornar valores por defecto en lugar de lanzar error
+        return { isCollapsed: false, toggleCollapse: () => {}, isMobile: false, isOpen: true, setIsOpen: () => {} };
     }
     return context;
-  }
+}
+
+// Provider que envuelve todo el layout
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
+    const [isCollapsed, setIsCollapsed] = React.useState(false);
+    const [isMobile, setIsMobile] = React.useState(false);
+    const [isOpen, setIsOpen] = React.useState(true);
+    
+    React.useEffect(() => {
+        const checkMobile = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            if (mobile) {
+                setIsOpen(false);
+                setIsCollapsed(false);
+            } else {
+                setIsOpen(true);
+            }
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+    
+    const toggleCollapse = () => {
+        if (isMobile) {
+            setIsOpen(!isOpen);
+        } else {
+            setIsCollapsed(!isCollapsed);
+        }
+    };
+
+    return (
+        <SidebarContext.Provider value={{ isCollapsed, toggleCollapse, isMobile, isOpen, setIsOpen }}>
+            {children}
+        </SidebarContext.Provider>
+    );
+}
+
+// Botón hamburguesa para móvil (se usa FUERA del sidebar)
+export function MobileMenuButton({ className }: { className?: string }) {
+    const { isMobile, toggleCollapse, isOpen } = useSidebar();
+    
+    // No mostrar en desktop o cuando el menú está abierto
+    if (!isMobile || isOpen) return null;
+    
+    return (
+        <button
+            onClick={toggleCollapse}
+            className={cn(
+                "fixed top-4 left-4 z-50 p-2 bg-primary text-white rounded-lg shadow-lg hover:bg-primary/90 transition md:hidden",
+                className
+            )}
+            aria-label="Abrir menú"
+        >
+            <Menu className="h-6 w-6" />
+        </button>
+    );
+}
 
 export const Sidebar = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => {
-    const [isCollapsed, setIsCollapsed] = React.useState(false);
-    
-    const toggleCollapse = () => {
-        setIsCollapsed(!isCollapsed);
-    }
+    const { isCollapsed, toggleCollapse, isMobile, isOpen, setIsOpen } = useSidebar();
 
     return (
-        <SidebarContext.Provider value={{ isCollapsed, toggleCollapse }}>
+        <>
+            {/* Overlay en móvil cuando el sidebar está abierto */}
+            {isMobile && isOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden"
+                    onClick={() => setIsOpen(false)}
+                />
+            )}
+            
             <div
                 ref={ref}
                 className={cn(
-                'relative bg-primary text-primary-foreground transition-all duration-300 ease-in-out flex flex-col',
-                isCollapsed ? 'w-16' : 'w-80',
-                className
+                    'bg-primary text-primary-foreground transition-all duration-300 ease-in-out flex flex-col h-screen',
+                    isMobile 
+                        ? cn(
+                            'fixed left-0 top-0 w-80 z-40 transform transition-transform duration-300',
+                            isOpen ? 'translate-x-0' : '-translate-x-full'
+                          )
+                        : cn(
+                            isCollapsed ? 'w-16' : 'w-80'
+                          ),
+                    className
                 )}
                 {...props}
             >
                 {children}
-                <div className="absolute -right-4 bottom-4">
-                    <Button
-                        variant="secondary"
-                        size="icon"
-                        className="rounded-full h-8 w-8 bg-card text-card-foreground hover:bg-card/80"
-                        onClick={toggleCollapse}
-                    >
-                        <ChevronLeft className={cn("h-4 w-4 transition-transform", isCollapsed && "rotate-180")} />
-                    </Button>
-                </div>
             </div>
-        </SidebarContext.Provider>
+            
+            {/* Botón de colapso en desktop - posición fija para evitar cortes */}
+            {!isMobile && (
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="fixed bottom-4 rounded-full h-8 w-8 bg-card text-card-foreground hover:bg-card/80 z-50 shadow-md transition-all duration-300"
+                    style={{ left: isCollapsed ? 'calc(4rem - 1rem)' : 'calc(20rem - 1rem)' }}
+                    onClick={toggleCollapse}
+                >
+                    <ChevronLeft className={cn("h-4 w-4 transition-transform", isCollapsed && "rotate-180")} />
+                </Button>
+            )}
+        </>
     )
 });
 Sidebar.displayName = 'Sidebar';
+
+// Botón de colapso para desktop (ya no se usa, integrado en Sidebar)
+export function SidebarCollapseButton() {
+    return null;
+}
 
 
 export const SidebarHeader = React.forwardRef<

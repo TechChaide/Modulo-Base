@@ -14,11 +14,12 @@ export function useAuth() {
   useEffect(() => {
     const checkAuth = () => {
       try {
-        const token = localStorage.getItem('token');
+        // Con httpOnly cookies, no tenemos token en localStorage
+        // Solo verificamos que existan user y appsByProfile
         const userData = localStorage.getItem('user');
-        const perfilesAutorizados = localStorage.getItem('perfilesAutorizados');
+        const appsByProfile = localStorage.getItem('appsByProfile');
 
-        if (!token || !userData) {
+        if (!userData || !appsByProfile) {
           setIsAuthenticated(false);
           setUser(null);
           toast({
@@ -30,30 +31,17 @@ export function useAuth() {
           return;
         }
 
-        // Verificar que el usuario tenga perfiles autorizados
-        if (!perfilesAutorizados) {
-          setIsAuthenticated(false);
-          setUser(null);
-          toast({
-            title: "Sin permisos",
-            description: "No tienes permisos para acceder al dashboard",
-            variant: "destructive",
-          });
-          router.push('/');
-          return;
-        }
-
         try {
           const parsedUser = JSON.parse(userData);
-          const parsedPerfiles = JSON.parse(perfilesAutorizados);
+          const parsedAppsByProfile = JSON.parse(appsByProfile);
           
-          // Verificar que tenga al menos un perfil válido
-          if (!Array.isArray(parsedPerfiles) || parsedPerfiles.length === 0) {
+          // Verificar que tenga al menos una aplicación
+          if (!Object.keys(parsedAppsByProfile || {}).length) {
             setIsAuthenticated(false);
             setUser(null);
             toast({
               title: "Sin permisos",
-              description: "No tienes perfiles autorizados para acceder al dashboard",
+              description: "No tienes acceso a ninguna aplicación configurada",
               variant: "destructive",
             });
             router.push('/');

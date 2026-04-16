@@ -104,4 +104,31 @@ export interface User {
   usuario: string;
   correo_usuario: string;
   condicion: string;
+  id_usuario: string;
+  codigo_empleado: string;
 }
+
+export interface FichaSocialHistorica {
+  CODIGO: string;
+  NOMBRE: string;
+  LOCALIDAD: string;
+  CEDULA: string;
+  MAIL: string;
+  GRUPO_DEPARTAMENTO: string;
+  DEPARTAMENTO: string;
+  CARGO: string;
+  CODIGO_JEFE: string;
+}
+
+export interface InformacionExterna {
+  codigo_informacion_externa: number;
+  codigo_usuario: number;
+  identificador: string;
+  nombres: string;
+  passcode: string;
+  estado: string;
+  fecha_creacion: Date | string;
+  usuario_creacion: string;
+  fecha_modificacion: Date | string;
+  usuario_modificacion: string;
+} 

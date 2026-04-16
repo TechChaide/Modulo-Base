@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import * as LucideIcons from 'lucide-react';
 import { Edit, Trash2, GripVertical, CornerDownRight } from 'lucide-react';
-import { menuService } from '@/services/menu.service';
+import { menuService } from '@/services/seguridades/menu.service';
 import { Separator } from '@radix-ui/react-select';
 
 const Icon = ({ name, className }: { name: string; className?: string }) => {
