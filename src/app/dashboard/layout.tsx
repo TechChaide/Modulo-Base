@@ -4,6 +4,7 @@ import { AppShell, AppShellContent, AppShellHeader } from '@/components/layout/a
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, MobileMenuButton, useSidebar } from '@/components/ui/sidebar-new';
 import { ProtectedRoute } from '@/components/protected-route';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
     Collapsible,
     CollapsibleContent,
@@ -241,7 +242,7 @@ const FloatingMenuItem = ({ item, pathname, level = 0 }: { item: any, pathname: 
     
     // Item sin hijos - es un link navegable
     return (
-        <a
+        <Link
             href={item.path ? `${environment.basePath}${item.path}` : '#'}
             className={`flex items-center gap-2 px-3 py-2 text-sm hover:bg-primary/10 rounded mx-1 ${
                 item.path && pathname?.startsWith(`${environment.basePath}${item.path}`) ? 'bg-primary/20 text-primary font-medium' : ''
@@ -249,7 +250,7 @@ const FloatingMenuItem = ({ item, pathname, level = 0 }: { item: any, pathname: 
         >
             {item.icon && <item.icon className="h-4 w-4" />}
             <span>{item.label}</span>
-        </a>
+        </Link>
     );
 };
 

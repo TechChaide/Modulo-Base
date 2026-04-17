@@ -5,6 +5,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Menu } from 'lucide-react';
+import Link from 'next/link';
 
 
 const SidebarContext = React.createContext<{
@@ -201,14 +202,15 @@ export const SidebarMenuButton = React.forwardRef<
     href: string;
     active?: boolean;
   }
->(({ className, children, active = false, ...props }, ref) => {
+>(({ className, children, active = false, href, ...props }, ref) => {
     const { isCollapsed } = useSidebar();
     const childrenArray = React.Children.toArray(children);
     const icon = childrenArray[0];
     const label = childrenArray[1];
 
   return (
-    <a
+    <Link
+      href={href}
       ref={ref}
       className={cn(
         'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
@@ -222,7 +224,7 @@ export const SidebarMenuButton = React.forwardRef<
     >
       {icon}
       {!isCollapsed && label}
-    </a>
+    </Link>
   );
 });
 SidebarMenuButton.displayName = 'SidebarMenuButton';
