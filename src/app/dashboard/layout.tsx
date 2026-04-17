@@ -243,9 +243,9 @@ const FloatingMenuItem = ({ item, pathname, level = 0 }: { item: any, pathname: 
     // Item sin hijos - es un link navegable
     return (
         <Link
-            href={item.path ? `${environment.basePath}${item.path}` : '#'}
+            href={item.path ? item.path : '#'}
             className={`flex items-center gap-2 px-3 py-2 text-sm hover:bg-primary/10 rounded mx-1 ${
-                item.path && pathname?.startsWith(`${environment.basePath}${item.path}`) ? 'bg-primary/20 text-primary font-medium' : ''
+                item.path && pathname?.startsWith(item.path) ? 'bg-primary/20 text-primary font-medium' : ''
             }`}
         >
             {item.icon && <item.icon className="h-4 w-4" />}
@@ -347,8 +347,8 @@ const RecursiveMenu = ({ items, level = 0 }: { items: any[], level?: number }) =
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <SidebarMenuButton
-                                                href={item.path ? `${environment.basePath}${item.path}` : '#'}
-                                                active={item.path ? pathname?.startsWith(`${environment.basePath}${item.path}`) : false}
+                                                href={item.path ? item.path : '#'}
+                                                active={item.path ? pathname?.startsWith(item.path) : false}
                                                 className="h-10 w-10 justify-center"
                                             >
                                                 <item.icon className="h-5 w-5" />
@@ -360,8 +360,8 @@ const RecursiveMenu = ({ items, level = 0 }: { items: any[], level?: number }) =
                                     </Tooltip>
                                 ) : (
                                     <SidebarMenuButton
-                                        href={item.path ? `${environment.basePath}${item.path}` : '#'}
-                                        active={item.path ? pathname?.startsWith(`${environment.basePath}${item.path}`) : false}
+                                        href={item.path ? item.path : '#'}
+                                        active={item.path ? pathname?.startsWith(item.path) : false}
                                         className="justify-start pl-4 h-9"
                                     >
                                         <item.icon className="h-4 w-4 mr-2" />
@@ -483,7 +483,8 @@ function UserPanel() {
         } catch (error) {
             console.error('Error al limpiar localStorage:', error);
         }
-        window.location.href = `${environment.basePath}/`;
+        const basePath = ((window as any).__NEXT_DATA__?.basePath || process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+        window.location.href = basePath ? `${basePath}/` : '/';
     };
 
     if (isCollapsed) {
@@ -543,7 +544,7 @@ export default function DashboardLayout({
                         description: "No se encontraron aplicaciones disponibles. Por favor, inicia sesión nuevamente.",
                         variant: "destructive",
                     });
-                    router.push(`${environment.basePath}/`);
+                    router.push('/');
                     return;
                 }
 
@@ -565,7 +566,7 @@ export default function DashboardLayout({
                         description: "No tienes acceso a las aplicaciones configuradas.",
                         variant: "destructive",
                     });
-                    router.push(`${environment.basePath}/`);
+                    router.push('/');
                     return;
                 }
 
@@ -630,7 +631,7 @@ export default function DashboardLayout({
                         description: "No se pudo cargar menús para ninguna aplicación. Contacta al administrador.",
                         variant: "destructive",
                     });
-                    router.push(`${environment.basePath}/`);
+                    router.push('/');
                     return;
                 }
 
@@ -641,7 +642,7 @@ export default function DashboardLayout({
                     description: err?.message || 'Error inesperado al cargar los menús del sistema',
                     variant: "destructive",
                 });
-                router.push(`${environment.basePath}/`);
+                router.push('/');
             } finally {
                 setMenuLoading(false);
             }

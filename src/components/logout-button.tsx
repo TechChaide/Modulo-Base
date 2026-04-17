@@ -20,7 +20,8 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({ className, variant =
     } catch (error) {
       console.error('Error al limpiar localStorage:', error);
     }
-    window.location.href = '/';
+    const basePath = ((window as any).__NEXT_DATA__?.basePath || process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+    window.location.href = basePath ? `${basePath}/` : '/';
   };
 
   const base = 'flex items-center justify-center gap-2 rounded-md text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2';

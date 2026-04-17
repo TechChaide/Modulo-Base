@@ -176,7 +176,10 @@ export function CameraComponent() {
               <h2 className="text-2xl font-bold text-green-500">{validationResult.message}</h2>
               <p className="text-lg"><span className="font-semibold">Tipo:</span> {validationResult.tipo}</p>
               <p className="text-lg"><span className="font-semibold">Empleado:</span> {validationResult.empleado?.nombre}</p>
-              <Button onClick={() => window.location.href = '/'} className="mt-4">Nuevo Registro</Button>
+              <Button onClick={() => {
+                const basePath = ((window as any).__NEXT_DATA__?.basePath || process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+                window.location.href = basePath ? `${basePath}/` : '/';
+              }} className="mt-4">Nuevo Registro</Button>
             </div>
           );
         case 'update_required':

@@ -13,8 +13,8 @@ export const environment = {
 
     ////////////////////////////////////////Api de Seguridades
     //apiURL : '/seguridades/api',
-    apiURL : 'http://localhost:5400',
-    //apiURL : 'https://apps.chaide.com/seguridadesGuard',
+    //apiURL : 'http://localhost:5400',
+    apiURL : 'https://apps.chaide.com/seguridadesGuard',
     
 
     ///////////////////////////////////////Api de reconocimiento Facial

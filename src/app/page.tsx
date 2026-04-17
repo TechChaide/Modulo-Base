@@ -163,7 +163,8 @@ export default function LoginPage() {
                     localStorage.setItem('aplicacionesDisponibles', JSON.stringify(aplicacionesValidas));
 
                     // Navegar al dashboard
-                    window.location.href = `${environment.basePath}/dashboard`;
+                    const basePath = ((window as any).__NEXT_DATA__?.basePath || process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+                    window.location.href = `${basePath}/dashboard`;
                     console.log('✓ Login por contraseña exitoso');
                     console.log('appsByProfile:', appsByProfileFiltrado);
                     toast({
@@ -393,7 +394,8 @@ export default function LoginPage() {
                                         console.log('User:', user);
                                         console.log('AppsByProfile:', appsByProfileFiltrado);
                                         // Redirigir al dashboard tras login facial exitoso
-                                        window.location.href = `${environment.basePath}/dashboard`;
+                                        const basePath = ((window as any).__NEXT_DATA__?.basePath || process.env.NEXT_PUBLIC_BASE_PATH || '').replace(/\/+$/, '');
+                                        window.location.href = `${basePath}/dashboard`;
                                         toast({
                                             title: 'Login exitoso',
                                             description: 'Acceso al dashboard completado'

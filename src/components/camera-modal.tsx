@@ -386,7 +386,7 @@ export function CameraModal({
         {/* Brand footer */}
         <div className="mt-6 flex flex-col items-center">
           <div className="flex items-center gap-3 opacity-70">
-            <img src="/img/logo_chaide.svg" alt="Logo" className="w-35 h-35 object-contain" />
+            <img src={`${environment.basePath}/img/logo_chaide.svg`} alt="Logo" className="w-35 h-35 object-contain" />
           </div>
         </div>
       </div>
