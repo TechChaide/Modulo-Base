@@ -24,6 +24,8 @@ import { serviciosService } from '@/services/seguridades/servicios.service';
 import { useToast } from '@/hooks/use-toast';
 import { environment } from '@/environments/environments.prod';
 import { User } from '@/types/interfaces';
+import { PermissionsProvider, buildPermisosMap, unionPermisos } from '@/hooks/use-permissions';
+import { RouteGuard } from '@/components/route-guard';
 // (LogoutButton preserved in repo but not used here; we implement custom panel UI)
 
 
@@ -36,8 +38,28 @@ type MenuNode = {
     path: string;
     estado: string;
     codigo_aplicacion: string;
+    orden?: string;
+    permisos?: string | null; // CRUDX
     children?: MenuNode[];
 };
+
+// Comparar segmentos de orden separados por punto numéricamente (ej. "2.10" > "2.9").
+// Los nodos sin orden van al final; empate se resuelve por codigo_menu.
+function compareMenuOrden(a: MenuNode, b: MenuNode): number {
+    const oa = a.orden != null ? String(a.orden).trim() : '';
+    const ob = b.orden != null ? String(b.orden).trim() : '';
+    if (oa !== ob) {
+        if (!oa) return 1;
+        if (!ob) return -1;
+        const pa = oa.split('.').map(Number);
+        const pb = ob.split('.').map(Number);
+        for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+            const diff = (pa[i] ?? 0) - (pb[i] ?? 0);
+            if (diff !== 0) return diff;
+        }
+    }
+    return a.codigo_menu - b.codigo_menu;
+}
 
 // Mapa de iconos string -> componente Lucide
 const iconMap: Record<string, React.ComponentType<any>> = {
@@ -85,7 +107,7 @@ function buildMenuTree(flatItems: MenuNode[]): MenuNode[] {
 
     // Ordenar raíces y sus hijos
     const sort = (nodes: MenuNode[]) => {
-        nodes.sort((a, b) => a.codigo_menu - b.codigo_menu);
+        nodes.sort(compareMenuOrden);
         for (const node of nodes) {
             if (node.children && node.children.length > 0) {
                 sort(node.children);
@@ -127,24 +149,32 @@ function mergeMenuTrees(trees: MenuNode[]): MenuNode[] {
         for (const sc of source.children) {
             const existing = childMap.get(sc.codigo_menu);
             if (existing) {
+                // Mismo menú en varios perfiles: sumar permisos
+                existing.permisos = unionPermisos(existing.permisos, sc.permisos);
                 mergeInto(existing, sc);
             } else {
                 // Clonar superficialmente
                 childMap.set(sc.codigo_menu, { ...sc, children: sc.children ? [...sc.children] : [] });
             }
         }
-        target.children = Array.from(childMap.values()).sort((a, b) => a.codigo_menu - b.codigo_menu);
+        target.children = Array.from(childMap.values()).sort(compareMenuOrden);
     };
 
     for (const root of trees) {
         const existing = byId.get(root.codigo_menu);
         if (existing) {
+            existing.permisos = unionPermisos(existing.permisos, root.permisos);
             mergeInto(existing, root);
         } else {
             byId.set(root.codigo_menu, { ...root, children: root.children ? [...root.children] : [] });
         }
     }
-    return Array.from(byId.values()).sort((a, b) => a.codigo_menu - b.codigo_menu);
+    // Ordenar todo el árbol por orden: los hijos de una raíz sin fusionar nunca pasan por mergeInto
+    const sortTree = (nodes: MenuNode[]): MenuNode[] =>
+        nodes
+            .map(n => (n.children?.length ? { ...n, children: sortTree(n.children) } : n))
+            .sort(compareMenuOrden);
+    return sortTree(Array.from(byId.values()));
 }
 
 // Filtrar solo nodos activos (estado === 'A'). Mantener nodos agrupadores si conservan hijos activos.
@@ -531,6 +561,7 @@ export default function DashboardLayout({
     const [menuItems, setMenuItems] = useState<Record<string, any[]>>({});
     const [menuLoading, setMenuLoading] = useState<boolean>(true);
     const [menuError, setMenuError] = useState<string | null>(null);
+    const [permisosByPath, setPermisosByPath] = useState<Record<string, string>>({});
     const { toast } = useToast();
     const router = useRouter();
 
@@ -572,6 +603,8 @@ export default function DashboardLayout({
 
                 // Cargar menús para cada aplicación en el mapa
                 const menusByApp: Record<string, any[]> = {};
+                // Permisos por ruta (todas las apps), usados por RouteGuard
+                const permisosMap: Record<string, string> = {};
 
                 await Promise.all(aplicacionesParaCargar.map(async (nombreApp) => {
                     try {
@@ -618,6 +651,11 @@ export default function DashboardLayout({
                         
                         if (filtered.length > 0) {
                             menusByApp[nombreApp] = toRecursiveItems(filtered);
+                            // Las rutas de este frontend pertenecen a su propia app: no mezclar
+                            // permisos de otras apps que compartan path (ej. /dashboard/calculator)
+                            if (nombreApp === environment.nombreAplicacion) {
+                                buildPermisosMap(filtered, permisosMap);
+                            }
                         }
                     } catch (err) {
                         console.error(`Error procesando menú de ${nombreApp}:`, err);
@@ -636,6 +674,8 @@ export default function DashboardLayout({
                 }
 
                 setMenuItems(menusByApp);
+                setPermisosByPath(permisosMap);
+                console.log(`Permisos por ruta (${environment.nombreAplicacion}):`, permisosMap);
             } catch (err: any) {
                 toast({
                     title: "Error cargando menús",
@@ -684,7 +724,9 @@ export default function DashboardLayout({
                     </Sidebar>
                     <div className="flex flex-col flex-1 relative h-full overflow-y-auto">
                         <MobileMenuButton />
-                        {children}
+                        <PermissionsProvider loading={menuLoading} permisosByPath={permisosByPath}>
+                            <RouteGuard>{children}</RouteGuard>
+                        </PermissionsProvider>
                     </div>
                 </div>
             </SidebarProvider>

@@ -10,5 +10,6 @@ export type MenuItem = {
   icon: string; // Name of a lucide-react icon
   path: string;
   roles: string[]; // array of role IDs
+  orden?: string;
   children?: MenuItem[];
 };

@@ -21,6 +21,7 @@ export interface Menu {
   path: string;
   estado: string;
   codigo_aplicacion: string;
+  orden?: string;
 }
 
 export interface MenuTipoUsuario {
